@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MIDIClockCSWrapper
 {
-	class MIDIClockLibException : Exception
+	public class MIDIClockLibException : Exception
 	{
 		public MIDIClockLibException() : base("MIDIClockライブラリで不明なエラーが発生しました。")
 		{
