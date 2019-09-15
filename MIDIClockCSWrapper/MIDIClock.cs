@@ -115,6 +115,14 @@ namespace MIDIClockCSWrapper
 			{
 				return MIDIClock_GetTempo(this.UnManagedObjectPointer);
 			}
+			set
+			{
+				int err = MIDIClock_SetTempo(this.UnManagedObjectPointer, value);
+				if (err == 0)
+				{
+					throw new MIDIClockLibException("テンポの設定に失敗しました。");
+				}
+			}
 		}
 
 		/// <summary>
@@ -125,6 +133,71 @@ namespace MIDIClockCSWrapper
 			get
 			{
 				return MIDIClock_GetSpeed(this.UnManagedObjectPointer);
+			}
+			set
+			{
+				int err = MIDIClock_SetSpeed(this.UnManagedObjectPointer, value);
+				if (err == 0)
+				{
+					throw new MIDIClockLibException("スピードの設定に失敗しました。");
+				}
+			}
+		}
+
+		/// <summary>
+		/// MIDI入力同期モード
+		/// </summary>
+		public MIDIInSyncModes MIDIInSyncMode
+		{
+			get
+			{
+				return (MIDIInSyncModes)Enum.ToObject(typeof(MIDIInSyncModes), MIDIClock_GetMIDIInSyncMode(this.UnManagedObjectPointer));
+			}
+			set
+			{
+				int err = MIDIClock_SetMIDIInSyncMode(this.UnManagedObjectPointer, (int)value);
+				if (err == 0)
+				{
+					throw new MIDIClockLibException("MIDI入力同期モードの設定に失敗しました。");
+				}
+			}
+		}
+
+		/// <summary>
+		/// ミリ秒
+		/// </summary>
+		public int Millisec
+		{
+			get
+			{
+				return MIDIClock_GetMillisec(this.UnManagedObjectPointer);
+			}
+			set
+			{
+				int err = MIDIClock_SetMillisec(this.UnManagedObjectPointer, value);
+				if (err == 0)
+				{
+					throw new MIDIClockLibException("ミリ秒の設定に失敗しました。");
+				}
+			}
+		}
+
+		/// <summary>
+		/// ティック数
+		/// </summary>
+		public int TickCount
+		{
+			get
+			{
+				return MIDIClock_GetTickCount(this.UnManagedObjectPointer);
+			}
+			set
+			{
+				int err = MIDIClock_SetTickCount(this.UnManagedObjectPointer, value);
+				if (err == 0)
+				{
+					throw new MIDIClockLibException("ティック数の設定に失敗しました。");
+				}
 			}
 		}
 
@@ -139,6 +212,16 @@ namespace MIDIClockCSWrapper
 			SMPTE25BASE = 25,
 			SMPTE29BASE = 29,
 			SMPTE30BASE = 30,
+		}
+
+		/// <summary>
+		/// MIDI入力同期モード
+		/// </summary>
+		public enum MIDIInSyncModes
+		{
+			Master                = 0,
+			SlaveMidiTimingClock  = 1,
+			SlaveSMPTEMTC = 2
 		}
 
 		#endregion
@@ -222,6 +305,37 @@ namespace MIDIClockCSWrapper
 			resolution = res;
 		}
 
+		/// <summary>
+		/// タイムベースを設定します。
+		/// </summary>
+		/// <param name="timeMode">タイムモード</param>
+		/// <param name="resolution">分解能</param>
+		public void SetTimeBase(TimeMode timeMode, int resolution)
+		{
+			int err = MIDIClock_SetTimeBase(this.UnManagedObjectPointer, (int)timeMode, resolution);
+			if (err == 0)
+			{
+				throw new MIDIClockLibException("タイムベースの設定に失敗しました。");
+			}
+		}
+
+		/// <summary>
+		/// MIDIクロックにMIDIメッセージを認識させる。
+		/// </summary>
+		/// <param name="midiMessage">MIDIメッセージ</param>
+		public void PutMIDIMessage(byte[] midiMessage)
+		{
+			MIDIClock_PutMIDIMessage(this.UnManagedObjectPointer, midiMessage, midiMessage.Length);
+		}
+
 		#endregion
+
+		#region ファイナライザー
+		~MIDIClock()
+		{
+			Delete();
+		}
+		#endregion
+
 	}
 }
