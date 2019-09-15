@@ -70,9 +70,69 @@ namespace MIDIClockCSWrapper
 
 		#endregion
 
+		#region プロパティ
+
+		private IntPtr _unManagedObjectPointer = IntPtr.Zero;
+		/// <summary>
+		/// アンマネージドのオブジェクトポインタ
+		/// </summary>
+		private IntPtr UnManagedObjectPointer
+		{
+			get
+			{
+				if (_unManagedObjectPointer != IntPtr.Zero)
+				{
+					return _unManagedObjectPointer;
+				}
+				else
+				{
+					throw new InvalidOperationException("UnManagedObjectPointerはnullです。");
+				}
+			}
+			set
+			{
+				_unManagedObjectPointer = value;
+			}
+		}
+
+		/// <summary>
+		/// MIDIクロックの動作状況を取得します。
+		/// </summary>
+		public bool IsRunning
+		{
+			get
+			{
+				return Convert.ToBoolean(MIDIClock_IsRunning(this.UnManagedObjectPointer));
+			}
+		}
+
+		/// <summary>
+		/// テンポ
+		/// </summary>
+		public int Tempo
+		{
+			get
+			{
+				return MIDIClock_GetTempo(this.UnManagedObjectPointer);
+			}
+		}
+
+		/// <summary>
+		/// スピード
+		/// </summary>
+		public int Speed
+		{
+			get
+			{
+				return MIDIClock_GetSpeed(this.UnManagedObjectPointer);
+			}
+		}
+
+		#endregion
+
 		#region 列挙型
 
-		enum TimeMode
+		public enum TimeMode
 		{
 			TPQNBASE    =  0,
 			SMPTE24BASE = 24,
@@ -83,9 +143,85 @@ namespace MIDIClockCSWrapper
 
 		#endregion
 
-		public MIDIClock()
-		{
+		#region コンストラクタ
 
+		/// <summary>
+		/// MIDIクロックオブジェクトを初期化して生成します。
+		/// </summary>
+		/// <param name="timeMode">タイムモード</param>
+		/// <param name="resolution">分解能</param>
+		/// <param name="tempo">テンポ</param>
+		public MIDIClock(TimeMode timeMode, int resolution, int tempo)
+		{
+			IntPtr intPtr = MIDIClock_Create((int)timeMode, resolution, tempo);
+			if (intPtr == IntPtr.Zero)
+			{
+				throw new MIDIClockLibException("MIDIクロックの生成に失敗しました。");
+			}
+			this.UnManagedObjectPointer = intPtr;
 		}
+
+		#endregion
+
+		#region メソッド
+
+		/// <summary>
+		/// MIDIクロックを削除する。
+		/// </summary>
+		private void Delete()
+		{
+			MIDIClock_Delete(this.UnManagedObjectPointer);
+			this.UnManagedObjectPointer = IntPtr.Zero;
+		}
+
+		/// <summary>
+		/// MIDIクロックをスタートする。
+		/// </summary>
+		public void Start()
+		{
+			if (!IsRunning)
+			{
+				int err = MIDIClock_Start(this.UnManagedObjectPointer);
+				if (err == 0)
+				{
+					throw new MIDIClockLibException("MIDIクロックのスタートに失敗しました。");
+				}
+			}
+		}
+
+		/// <summary>
+		/// MIDIクロックをストップする。
+		/// </summary>
+		public void Stop()
+		{
+			MIDIClock_Stop(this.UnManagedObjectPointer);
+		}
+
+		/// <summary>
+		/// MIDIクロックをリセットする。
+		/// </summary>
+		public void Reset()
+		{
+			MIDIClock_Reset(this.UnManagedObjectPointer);
+		}
+
+		/// <summary>
+		/// タイムベースを取得します。
+		/// </summary>
+		/// <param name="timeMode">タイムモード</param>
+		/// <param name="resolution">分解能</param>
+		public void GetTimeBase(out TimeMode timeMode, out int resolution)
+		{
+			int mode, res;
+			int err = MIDIClock_GetTimeBase(this.UnManagedObjectPointer, out mode, out res);
+			if (err == 0)
+			{
+				throw new MIDIClockLibException("タイムベースの取得に失敗しました。");
+			}
+			timeMode = (TimeMode)Enum.ToObject(typeof(TimeMode), mode);
+			resolution = res;
+		}
+
+		#endregion
 	}
 }
